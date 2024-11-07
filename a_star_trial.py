@@ -3,7 +3,11 @@ My Python implementation of the A* search algorithm.
 
 Current script uses a grid with obstacles to showcase A* framework.
 """
+
 from __future__ import annotations
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 
 class Node:
@@ -43,7 +47,10 @@ def a_star(grid, start, goal):
     open_list.append(start_node)
 
     movements = [
-        (0, 1), (0, -1), (1, 0), (-1, 0),
+        (0, 1),
+        (0, -1),
+        (1, 0),
+        (-1, 0),
     ]  # defining possible moves for my robot
 
     while open_list:
@@ -51,28 +58,21 @@ def a_star(grid, start, goal):
         open_list.remove(current_node)
         closed_list.append(current_node)
 
-        print('current position:', (current_node.x, current_node.y))
+        print("current position:", (current_node.x, current_node.y))
 
         if current_node == goal_node:
-            print('found the goal node at:', (current_node.x, current_node.y))
+            print("found the goal node at:", (current_node.x, current_node.y))
             return reconstruct_path(current_node)
 
         for move in movements:
             x, y = current_node.x + move[0], current_node.y + move[1]
 
-            if (
-                x < 0 or x >= len(grid) or
-                y < 0 or y >= len(grid[0]) or
-                grid[x][y] == 1
-            ):
+            if x < 0 or x >= len(grid) or y < 0 or y >= len(grid[0]) or grid[x][y] == 1:
                 continue
 
             neighbor = Node(x, y)
 
-            if any(
-                node.x == neighbor.x and node.y == neighbor.y
-                for node in closed_list
-            ):
+            if any(node.x == neighbor.x and node.y == neighbor.y for node in closed_list):
                 continue
 
             neighbor.g = current_node.g + 1
@@ -105,34 +105,57 @@ def reconstruct_path(node):
     return path[::-1]
 
 
-if __name__ == '__main__':
-    grid = [
-        [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-        [1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-        [0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0],
-        [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-        [1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0],
-        [1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1],
-        [0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0],
-        [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0],
-        [1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0],
-        [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-        [1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0],
-        [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0],
-        [1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0],
-        [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0],
-        [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1],
-        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0],
-        [0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
-    ]
-    start = (0, 0)
-    goal = (19, 19)
+if __name__ == "__main__":
+    USE_RANDOM_GRID = True
+    if USE_RANDOM_GRID:
+        PROBABILITY_OF_A_CELL_BEING_AN_OBSTACLE = 0.2
+        GRID_SIZE = 100
+        rng = np.random.default_rng()
+        THRESHOLD_FOR_GRID_GENERATION = PROBABILITY_OF_A_CELL_BEING_AN_OBSTACLE * 100
+        grid = rng.integers(low=0, high=101, size=(GRID_SIZE, GRID_SIZE)) <= THRESHOLD_FOR_GRID_GENERATION
+        print(grid)
+        start = (0, 0)
+        goal = (GRID_SIZE - 1, GRID_SIZE - 1)
+        grid[start] = 0
+        grid[goal] = 0
+    else:
+        grid = [
+            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+            [1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0],
+            [0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0],
+            [0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0],
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0],
+            [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0],
+            [1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1],
+            [0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0],
+            [1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0],
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+            [1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0],
+            [0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0],
+            [1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0],
+            [1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1],
+            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0],
+            [0, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+        ]
+        start = (0, 0)
+        goal = (19, 19)
 
     try:
         path = a_star(grid, start, goal)
-        print('found the shortest path:', path)
+        print("found the shortest path:", path)
     except ValueError as e:
         print(e)
+
+    plt.figure()
+    plt.spy(np.array(grid).T)
+    for waypoint in path:
+        hwaypoint = plt.scatter(waypoint[0], waypoint[1], 10, color="r")
+    hstart = plt.scatter(start[0], start[1], 50, color="b")
+    hgoal = plt.scatter(goal[0], goal[1], 50, color="g")
+    plt.legend([hstart, hgoal, hwaypoint], ["Start", "Goal", "Waypoint"], bbox_to_anchor=(1.35, 0.5))
+    plt.tight_layout()
+    plt.show()
